@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Interactive Stopwatch - Ring Rotates Only</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+      background: radial-gradient(circle at top left, #0f2027, #203a43, #2c5364);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: #fff;
+    }
+
+    .stopwatch-container {
+      background: rgba(255, 255, 255, 0.06);
+      padding: 40px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.4);
+      text-align: center;
+      user-select: none;
+      width: 320px;
+    }
+
+    /* Outer ring rotates */
+    .circle {
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, #00eaff, #ff00c8, #00eaff);
+      animation: swirl 6s linear infinite;
+      margin: 0 auto 25px;
+      box-shadow: 0 0 40px rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      overflow: visible;
+    }
+
+    @keyframes swirl {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Inner time container fixed, no rotation */
+    .time {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2.4rem;
+      font-weight: 700;
+      background: #111;
+      border-radius: 50%;
+      width: 180px;
+      height: 180px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.3);
+      color: #00ffff;
+      text-shadow: 0 0 8px #00ffff;
+      user-select: text;
+      pointer-events: none;
+      letter-spacing: 2px;
+    }
+
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .controls button {
+      background: linear-gradient(135deg, #fc466b, #3f5efb);
+      border: none;
+      color: #fff;
+      padding: 12px 28px;
+      border-radius: 30px;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.25);
+      user-select: none;
+      flex: 1 1 45%;
+      max-width: 140px;
+    }
+
+    .controls button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
+    }
+
+    .laps {
+      max-height: 140px;
+      overflow-y: auto;
+      margin-top: 30px;
+      text-align: left;
+      user-select: text;
+      padding: 0 10px;
+      font-size: 1em;
+    }
+
+    .laps li {
+      background: rgba(255, 255, 255, 0.12);
+      margin: 6px 0;
+      padding: 10px 15px;
+      border-radius: 10px;
+      font-weight: 600;
+      color: #e0e0e0;
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.15);
+    }
+
+    /* Scrollbar for laps */
+    .laps::-webkit-scrollbar {
+      width: 6px;
+    }
+    .laps::-webkit-scrollbar-thumb {
+      background: #00eaff;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="stopwatch-container">
+    <div class="circle">
+      <div class="time" id="display">00:00:00</div>
+    </div>
+
+    <div class="controls">
+      <button onclick="start()">Start</button>
+      <button onclick="pause()">Pause</button>
+      <button onclick="reset()">Reset</button>
+      <button onclick="lap()">Lap</button>
+    </div>
+
+    <ul class="laps" id="laps"></ul>
+  </div>
+
+  <script>
+    let startTime, updatedTime, difference = 0, timerInterval;
+    let running = false;
+    const display = document.getElementById('display');
+    const lapsList = document.getElementById('laps');
+
+    function updateDisplay() {
+      updatedTime = new Date().getTime();
+      difference = updatedTime - startTime;
+
+      let hours = Math.floor(difference / 3600000);
+      let minutes = Math.floor((difference % 3600000) / 60000);
+      let seconds = Math.floor((difference % 60000) / 1000);
+
+      display.textContent =
+        `${String(hours).padStart(2, '0')}:` +
+        `${String(minutes).padStart(2, '0')}:` +
+        `${String(seconds).padStart(2, '0')}`;
+    }
+
+    function start() {
+      if (!running) {
+        running = true;
+        startTime = new Date().getTime() - difference;
+        timerInterval = setInterval(updateDisplay, 1000);
+      }
+    }
+
+    function pause() {
+      if (running) {
+        running = false;
+        clearInterval(timerInterval);
+      }
+    }
+
+    function reset() {
+      pause();
+      difference = 0;
+      display.textContent = "00:00:00";
+      lapsList.innerHTML = "";
+    }
+
+    function lap() {
+      if (!difference) return;
+      const li = document.createElement('li');
+      li.textContent = `Lap: ${display.textContent}`;
+      lapsList.appendChild(li);
+      lapsList.scrollTop = lapsList.scrollHeight; // auto scroll down
+    }
+  </script>
+
+</body>
+</html>
